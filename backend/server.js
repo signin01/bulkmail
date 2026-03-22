@@ -6,22 +6,29 @@ require('dotenv').config();
 
 const app = express();
 
-app.use(cors());
+// Specialized CORS for Vercel deployment
+app.use(cors({
+    origin: ["https://bulkmail-weld-seven.vercel.app"],
+    methods: ["POST", "GET", "DELETE"],
+    credentials: true
+}));
 app.use(express.json());
 
+// MongoDB Schema
 const MailSchema = new mongoose.Schema({
-    subject: { type: String, required: true },
-    body: { type: String, required: true },
-    recipients: { type: [String], required: true },
+    subject: String,
+    body: String,
+    recipients: [String],
     sentAt: { type: Date, default: Date.now }
 });
-
 const Mail = mongoose.model('Mail', MailSchema);
 
+// Database Connection
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('SYSTEM: MongoDB Cluster1 Synchronized'))
-    .catch(err => console.error('CRITICAL: Database Connection Interrupted', err));
+    .then(() => console.log('NEBULA_DB: Connected to Cluster1'))
+    .catch(err => console.error('NEBULA_DB: Connection Failed', err));
 
+// Email Transporter
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -30,56 +37,46 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// ROUTES
 app.post('/api/send-mail', async (req, res) => {
-    const { subject, body, recipients } = req.body;
-
     try {
-        const mailOptions = {
+        const { subject, body, recipients } = req.body;
+        await transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: recipients.join(','),
-            subject: subject,
-            text: body
-        };
-
-        await transporter.sendMail(mailOptions);
-
-        const newEntry = new Mail({
             subject,
-            body,
-            recipients
+            text: body
         });
-
-        await newEntry.save();
-        res.status(200).json({ status: 'Success', message: 'Payload Delivered' });
-        
+        const log = new Mail({ subject, body, recipients });
+        await log.save();
+        res.status(200).json({ message: 'Broadcast Success' });
     } catch (error) {
-        console.error('TRANSMISSION_ERROR:', error);
-        res.status(500).json({ status: 'Error', message: 'Broadcast Failed' });
+        res.status(500).json({ error: error.message });
     }
 });
 
 app.get('/api/history', async (req, res) => {
     try {
         const logs = await Mail.find().sort({ sentAt: -1 });
-        res.status(200).json(logs);
+        res.json(logs);
     } catch (err) {
-        res.status(500).json({ status: 'Error', message: 'Could not retrieve logs' });
+        res.status(500).json({ error: 'Log retrieval failed' });
     }
 });
 
 app.delete('/api/history/:id', async (req, res) => {
     try {
-        const result = await Mail.findByIdAndDelete(req.params.id);
-        if (!result) {
-            return res.status(404).json({ message: 'Entry not found' });
-        }
-        res.status(200).json({ message: 'Log entry wiped' });
+        await Mail.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Entry wiped' });
     } catch (err) {
-        res.status(500).json({ status: 'Error', message: 'Wipe protocol failed' });
+        res.status(500).json({ error: 'Wipe failed' });
     }
 });
 
+// CRITICAL FOR VERCEL:
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`NEBULA SERVER ACTIVE ON PORT ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => console.log(`Server on ${PORT}`));
+}
+
+module.exports = app;
