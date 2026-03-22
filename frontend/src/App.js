@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API_BASE = '/api'; // No localhost, no ports. Vercel handles this.
+const API_BASE = "http://localhost:5000/api"; // ✅ ADD THIS
 
 function App() {
   const [formData, setFormData] = useState({ subject: '', body: '', recipients: '' });
@@ -13,10 +13,14 @@ function App() {
     try {
       const res = await axios.get(`${API_BASE}/history`);
       setHistory(res.data);
-    } catch (err) { console.error("Sync Error"); }
+    } catch (err) {
+      console.error("Sync Error:", err);
+    }
   };
 
-  useEffect(() => { fetchHistory(); }, []);
+  useEffect(() => {
+    fetchHistory();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,8 +31,11 @@ function App() {
       await axios.post(`${API_BASE}/send-mail`, { ...formData, recipients: list });
       setFormData({ subject: '', body: '', recipients: '' });
       fetchHistory();
-    } catch (err) { alert("Broadcast Failed"); }
-    finally { setLoading(false); }
+    } catch (err) {
+      alert("Broadcast Failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const deleteItem = async (id) => {
@@ -49,15 +56,20 @@ function App() {
             <label>Subject</label>
             <input type="text" value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} required />
           </div>
+
           <div className="input-group">
             <label>Targets (CSV)</label>
             <input type="text" value={formData.recipients} onChange={e => setFormData({...formData, recipients: e.target.value})} required />
           </div>
+
           <div className="input-group full-width">
             <label>Payload</label>
             <textarea value={formData.body} onChange={e => setFormData({...formData, body: e.target.value})} required />
           </div>
-          <button type="submit">{loading ? "TRANSMITTING..." : "LAUNCH BROADCAST"}</button>
+
+          <button type="submit">
+            {loading ? "TRANSMITTING..." : "LAUNCH BROADCAST"}
+          </button>
         </form>
 
         <section className="logs">

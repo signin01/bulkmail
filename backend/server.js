@@ -46,8 +46,10 @@ app.post('/api/send-mail', async (req, res) => {
       subject,
       text: body
     });
+
     const newMail = new Mail({ subject, body, recipients });
     await newMail.save();
+
     res.json({ msg: "Sent" });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -59,5 +61,9 @@ app.delete('/api/history/:id', async (req, res) => {
   res.json({ msg: "Deleted" });
 });
 
-// Export for Vercel
-module.exports = app;
+// ✅ ADD THIS (IMPORTANT)
+const PORT = 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
