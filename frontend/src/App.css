@@ -1,0 +1,185 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
+
+:root {
+  --neon-blue: DodgerBlue;
+  --neon-purple: MediumOrchid;
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --text-main: GhostWhite;
+  --text-dim: LightSteelBlue;
+  --bg-dark: Black;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  background-color: var(--bg-dark);
+  /* Animated Mesh Background */
+  background-image: 
+    radial-gradient(at 0% 0%, DarkSlateBlue 0px, transparent 50%),
+    radial-gradient(at 100% 100%, DarkMagenta 0px, transparent 50%);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.app-viewport {
+  width: 100%;
+  max-width: 900px;
+  padding: 40px 20px;
+}
+
+.main-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid var(--glass-border);
+  border-radius: 40px;
+  padding: 60px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Glowing orb behind the card */
+.main-card::after {
+  content: '';
+  position: absolute;
+  top: -100px;
+  left: -100px;
+  width: 300px;
+  height: 300px;
+  background: var(--neon-blue);
+  filter: blur(150px);
+  opacity: 0.2;
+  z-index: -1;
+}
+
+header h1 {
+  font-size: 4.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 0;
+  letter-spacing: -5px;
+  background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+header p {
+  text-align: center;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  font-size: 0.8rem;
+  margin-top: 10px;
+}
+
+/* Grid Form */
+.dispatch-form {
+  margin-top: 50px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.input-group { display: flex; flex-direction: column; gap: 12px; }
+.full-width { grid-column: span 2; }
+
+.input-group label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--neon-blue);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+input, textarea {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--glass-border);
+  border-radius: 15px;
+  padding: 20px;
+  color: white;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.4s ease;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--neon-blue);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 20px rgba(30, 144, 255, 0.2);
+}
+
+textarea { min-height: 180px; }
+
+/* Cyber Button */
+button {
+  grid-column: span 2;
+  background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+  color: white;
+  padding: 22px;
+  border: none;
+  border-radius: 15px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  transition: all 0.3s;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+button:hover {
+  transform: translateY(-3px) scale(1.02);
+  filter: brightness(1.2);
+  box-shadow: 0 15px 30px rgba(30, 144, 255, 0.4);
+}
+
+/* History Logs */
+.logs { margin-top: 60px; }
+.logs h2 { font-size: 1.5rem; letter-spacing: 2px; color: var(--text-dim); }
+
+.log-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 25px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: 0.3s;
+}
+
+.log-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--neon-blue);
+}
+
+.status-glow {
+  width: 10px;
+  height: 10px;
+  background: var(--neon-blue);
+  border-radius: 50%;
+  box-shadow: 0 0 15px var(--neon-blue);
+}
+
+.delete-btn {
+  background: rgba(255, 99, 71, 0.1);
+  color: Tomato;
+  border: 1px solid rgba(255, 99, 71, 0.2);
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: Tomato;
+  color: white;
+}

@@ -5,78 +5,59 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-
-// Specialized CORS for Vercel deployment
-app.use(cors({
-    origin: ["https://bulkmail-weld-seven.vercel.app"],
-    methods: ["POST", "GET", "DELETE"],
-    credentials: true
-}));
+app.use(cors());
 app.use(express.json());
 
-// MongoDB Schema
+// MongoDB Connection
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("Nebula DB Connected"))
+  .catch(err => console.log("DB Connection Error:", err));
+
+// Schema
 const MailSchema = new mongoose.Schema({
-    subject: String,
-    body: String,
-    recipients: [String],
-    sentAt: { type: Date, default: Date.now }
+  subject: String,
+  body: String,
+  recipients: [String],
+  sentAt: { type: Date, default: Date.now }
 });
 const Mail = mongoose.model('Mail', MailSchema);
 
-// Database Connection
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('NEBULA_DB: Connected to Cluster1'))
-    .catch(err => console.error('NEBULA_DB: Connection Failed', err));
-
-// Email Transporter
+// Email Setup
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
 });
 
-// ROUTES
-app.post('/api/send-mail', async (req, res) => {
-    try {
-        const { subject, body, recipients } = req.body;
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: recipients.join(','),
-            subject,
-            text: body
-        });
-        const log = new Mail({ subject, body, recipients });
-        await log.save();
-        res.status(200).json({ message: 'Broadcast Success' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
+// Routes
 app.get('/api/history', async (req, res) => {
-    try {
-        const logs = await Mail.find().sort({ sentAt: -1 });
-        res.json(logs);
-    } catch (err) {
-        res.status(500).json({ error: 'Log retrieval failed' });
-    }
+  const logs = await Mail.find().sort({ sentAt: -1 });
+  res.json(logs);
+});
+
+app.post('/api/send-mail', async (req, res) => {
+  const { subject, body, recipients } = req.body;
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: recipients.join(','),
+      subject,
+      text: body
+    });
+    const newMail = new Mail({ subject, body, recipients });
+    await newMail.save();
+    res.json({ msg: "Sent" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.delete('/api/history/:id', async (req, res) => {
-    try {
-        await Mail.findByIdAndDelete(req.params.id);
-        res.json({ message: 'Entry wiped' });
-    } catch (err) {
-        res.status(500).json({ error: 'Wipe failed' });
-    }
+  await Mail.findByIdAndDelete(req.params.id);
+  res.json({ msg: "Deleted" });
 });
 
-// CRITICAL FOR VERCEL:
-const PORT = process.env.PORT || 5000;
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => console.log(`Server on ${PORT}`));
-}
-
+// Export for Vercel
 module.exports = app;
